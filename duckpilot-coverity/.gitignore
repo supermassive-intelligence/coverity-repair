@@ -1,0 +1,74 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual Environment
+venv/
+env/
+.env/
+.venv/
+.env
+*.env
+.env.local
+ENV/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Model and Large Data Files
+*.model
+*.h5
+*.pkl
+*.pt
+*.pth
+*.onnx
+large_data/
+
+# IDE and Editor Files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+logs/
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+
+# Sensitive Information
+.env
+secrets.yml
+*.key
+
+# Evaluation and Visualization Outputs
+diff_output.txt
+*.jsonlines
+*.txt.eval
+
+# Temporary Files
+*.tmp
+*.bak
+
+# Build and Distribution
+build/
+dist/
+*.egg-info/
+
+# Compiled Source
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.obj
+
+# Machine Learning Specific
+wandb/
+mlruns/
+*.mlmodel
