@@ -14,11 +14,10 @@ LOCAL_DIRECTORY="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd
 
 # Build the container
 $LOCAL_DIRECTORY/../scripts/build.sh
-    #-v ~/.lamini:/root/.lamini \
 
 
-docker run  --env-file .env -it \
-    -v $LOCAL_DIRECTORY/../dataset:/app/duckpilot-coverity/dataset \
+docker run -it --network sudnya-localhost-network \
+    -p 9000 -v $LOCAL_DIRECTORY/../dataset:/app/duckpilot-coverity/dataset \
     --entrypoint /app/duckpilot-coverity/eval/start.sh \
       duckpilot-coverity:latest $@
 

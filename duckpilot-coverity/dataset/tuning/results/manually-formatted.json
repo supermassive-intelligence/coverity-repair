@@ -1,0 +1,82 @@
+diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_cs.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_cs.c
+index 1234567..89abcdef 100644
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_cs.c
++++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_cs.c
+@@ -50,7 +50,7 @@
+ struct amdgpu_fpriv *fpriv = filp->driver_priv;
+ if (cs->in.num_chunks == 0)
+-    return -EINVAL;
++    return -EINVAL && !cs;
+}
+
+diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_atombios.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_atombios.c
+index 1234567..89abcdef 100644
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_atombios.c
++++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_atombios.c
+@@ -149,7 +149,7 @@
+         i2c = amdgpu_atombios_get_bus_rec_for_i2c_gpio(gpio);
+
+         if (i2c.valid) {
+             /* Fix: Use snprintf instead of sprintf */
+             size_t len = snprintf(stmp, sizeof(stmp), "0x%x", i2c.i2c_id);
+             if (len >= sizeof(stmp)) {
+                 /* Handle buffer overflow */
+                 pr_err("Buffer overflow in sprintf\n");
+                 return -EINVAL;
+             }
+             adev->i2c_bus[i] = amdgpu_i2c_create(adev_to_drm(adev), &i2c, stmp);
+         }
+         gpio = (ATOM_GPIO_I2C_ASSIGMENT *)
+                ((u8 *)gpio + sizeof(ATOM_GPIO_I2C_ASSIGMENT));
+     }
+
+diff --git a/drivers/gpu/drm/amd/amdgpu/aldebaran.c b/drivers/gpu/drm/amd/amdgpu/aldebaran.c
+index 1234567..89abcdef 100644
+--- a/drivers/gpu/drm/amd/amdgpu/aldebaran.c
++++ b/drivers/gpu/drm/amd/amdgpu/aldebaran.c
+@@ -49,7 +49,7 @@
+ aldebaran_get_reset_handler(struct amdgpu_reset_control *reset_ctl,
+                                struct amdgpu_reset_context *reset_context)
+ {
+     struct amdgpu_reset_handler *handler;
+-    struct amdgpu_device *adev = (struct amdgpu_device *)reset_ctl->handle;
++    struct amdgpu_device *adev = (reset_ctl) ? (struct amdgpu_device *)reset_ctl->handle : NULL;
+
+     if (reset_context->method == AMD_RESET_METHOD_NONE) {
+-        if (aldebaran_is_mode2_default(reset_ctl))
++        if (reset_ctl && aldebaran_is_mode2_default(reset_ctl))
+             reset_context->method = AMD_RESET_METHOD_MODE2;
+
+         if (!adev)
+             return;
+     }
+}
+
+
+
+
+
+
+
+
+diff --git a/drivers/gpu/drm/amd/amdgpu/aldebaran.c b/drivers/gpu/drm/amd/amdgpu/aldebaran.c
+index 1234567..89abcdef 100644
+--- a/drivers/gpu/drm/amd/amdgpu/aldebaran.c
++++ b/drivers/gpu/drm/amd/amdgpu/aldebaran.c
+@@ -49,7 +49,7 @@
+ aldebaran_get_reset_handler(struct amdgpu_reset_control *reset_ctl,
+                                struct amdgpu_reset_context *reset_context)
+ {
+     struct amdgpu_reset_handler *handler;
+-    struct amdgpu_device *adev = (struct amdgpu_device *)reset_ctl->handle;
++    struct amdgpu_device *adev = (reset_ctl) ? (struct amdgpu_device *)reset_ctl->handle : NULL;
+
+     if (reset_context->method == AMD_RESET_METHOD_NONE) {
+-        if (aldebaran_is_mode2_default(reset_ctl))
++        if (reset_ctl && aldebaran_is_mode2_default(reset_ctl))
+             reset_context->method = AMD_RESET_METHOD_MODE2;
+
+         if (!adev)
+             return;
+     }
+}

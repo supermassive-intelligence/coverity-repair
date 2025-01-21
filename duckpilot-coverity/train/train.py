@@ -1,23 +1,15 @@
-import random
 import jsonlines
 import argparse
-
-
+import masint
+from prompt import prompt_template
 import constants as constval
-import lamini
-import os
-from dotenv import load_dotenv
-
-from pathlib import Path
-
-dotenv_path = Path(".") / ".env"
-load_dotenv(dotenv_path=dotenv_path)
-lamini.api_key = os.environ.get("LAMINI_API_KEY")
-
 
 import logging
 
+#masint.api_url = "http://localhost:8000" 
+masint.api_url = "https://meta-llama--llama-3-2-3b-instruct.cray-lm.com"
 logger = logging.getLogger(__name__)
+
 
 
 def print_data(data):
@@ -32,20 +24,26 @@ def get_data(training_data_file, dataset_size=1000):
 
     data = []
 
-    for item in raw_data:
-        prompt = make_prompt(item)
+    for i in range(len(raw_data)):
+        print(f"{i} is {raw_data[i].keys()}")
+        entry = prompt_template.format(
+            source_code_path=raw_data[i]["source_code_path"],
+            line_number=raw_data[i]["line_number"],
+            code=get_source_code(raw_data[i]),
+            bug_report_text=raw_data[i]["bug_report_text"])
+        
         data.append(
             {
-                "input": prompt,
-                "output": item["diff_text"] + "<|eot_id|>",
-                # "output": item["diff_text"] + "</s>",
+                "input": entry,
+                "output": raw_data[i]["diff_text"]
             }
         )
-
+        break
+    logger.info(f"Generated {len(data)} training samples")
     # random.seed(42)
     # random.shuffle(data)
-
     return data
+
 
 
 def get_raw_data(training_data_file):
@@ -53,40 +51,6 @@ def get_raw_data(training_data_file):
         data = list(reader)
 
     return data
-
-
-def make_prompt(item):
-    prompt = "<|start_header_id|>user<|end_header_id|>"
-    # prompt = "<s>[INST]"
-    prompt += "Consider the following github diff format.\n"
-    prompt += "============ Diff format ============\n"
-    prompt += "```diff\n"
-    prompt += "diff --git a/file1 b/file2\n"
-    prompt += "index 1234567..89abcdef 100644\n"
-    prompt += "--- a/file1\n"
-    prompt += "+++ b/file2\n"
-    prompt += "@@ -1,3 +1,3 @@\n"
-    prompt += "-old line\n"
-    prompt += "+new line\n"
-    prompt += "```"
-    prompt += "====================================\n"
-    prompt += "Read through the following source code carefully.\n"
-    prompt += "============ Source Code ============\n"
-    prompt += "File: " + item["source_code_path"] + "\n"
-    prompt += "Line: " + str(item["line_number"]) + "\n"
-    prompt += get_source_code(item)
-    prompt += "====================================\n"
-    prompt += "Read the following bug report.\n"
-    prompt += "============ Bug Report ============\n"
-    prompt += item["bug_report_text"]
-    prompt += "====================================\n"
-    prompt += "Based on the source code and the bug report, write a diff that fixes the bug.\n"
-    prompt += "Use github diff format.\n"
-    prompt += "Don't explain your diff, answer directly with the diff.\n"
-    prompt += "<|eot_id|><|start_header_id|>assistant<|end_header_id|>"
-    # prompt += "[/INST]"
-
-    return prompt
 
 
 def get_source_code(data):
@@ -133,23 +97,14 @@ def main():
     # Set up logging based on verbose flag
     log_level = logging.DEBUG if args.verbose else logging.INFO
     logging.basicConfig(level=log_level, format="%(levelname)s: %(message)s")
-    print(f"\n\n lamini api key {lamini.api_key}\n\n")
-
-    llm = lamini.Lamini(model_name=constval.BASE_MODEL_NAME)
 
     data = get_data(training_data_file=args.input)
 
-    print_data(data)
+    llm = masint.SupermassiveIntelligence()
+    train_response = llm.train(data, train_args={"max_steps": 400, "learning_rate": 3e-3})
 
-    llm.tune(
-        data_or_dataset_id=data,
-        finetune_args={
-            "max_steps": 100,
-            "learning_rate": 3.0e-4,
-            "batch_size": 1,
-        },
-        gpu_config={"gpus": 1, "nodes": 1},
-    )
+    print(train_response)
+
 
 
 # Entry point of the script

@@ -7,6 +7,8 @@ ARG PACKAGE_NAME="duckpilot-coverity"
 
 # Install python packages
 WORKDIR /app/${PACKAGE_NAME}
+COPY sdk/ /app/${PACKAGE_NAME}/sdk
+
 COPY ./requirements.txt /app/${PACKAGE_NAME}/requirements.txt
 
 RUN pip install -r requirements.txt

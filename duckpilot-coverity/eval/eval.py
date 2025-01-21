@@ -1,29 +1,47 @@
-from lamini.generation.generation_node import GenerationNode
-from lamini.generation.generation_pipeline import GenerationPipeline
-from lamini.generation.base_prompt_object import PromptObject
-
+import masint
 import argparse
-from tqdm import tqdm
 import csv
 import constants as constval
-import asyncio
 import jsonlines
-import lamini
 import os
-from dotenv import load_dotenv
-
-from pathlib import Path
-
-# Build path using current directory
-dotenv_path = Path(".") / ".env"
-load_dotenv(dotenv_path=dotenv_path)
-lamini.api_key = os.environ.get("LAMINI_API_KEY")
-
-
 import logging
+from prompt import prompt_template
+
+#masint.api_url = "http://localhost:8000" 
+masint.api_url = "https://meta-llama--llama-3-2-3b-instruct.cray-lm.com"
 
 logger = logging.getLogger(__name__)
 
+import re
+
+def format_diff(raw_diff):
+    # Extract the diff content
+    diff_match = re.search(r'```diff\n(.*?)\n```', raw_diff, re.DOTALL)
+    if not diff_match:
+        return "Invalid diff format"
+    
+    diff_content = diff_match.group(1)
+    
+    # Extract file name
+    file_match = re.search(r'diff --git a/(.*?) b/.*', diff_content)
+    file_name = file_match.group(1) if file_match else "Unknown file"
+    
+    # Extract note
+    note_match = re.search(r'```={36}\n(.*)', raw_diff, re.DOTALL)
+    note = note_match.group(1).strip() if note_match else ""
+    
+    # Format the readable output
+    formatted_output = f"""
+        File: {file_name}
+        ```diff
+        {diff_content}
+        ```
+
+        Note:
+        {note if note else 'No additional notes.'}
+        """.strip()
+    
+    return formatted_output
 
 def load_data(eval_file_path):
     with jsonlines.open(eval_file_path) as reader:
@@ -32,89 +50,19 @@ def load_data(eval_file_path):
     return data
 
 
-def run_eval_pipeline(data, model_hash):
-    return asyncio.run(eval_pipeline(data, model_hash))
+def get_dataset(data):
+    dataset = []
+    for i in range(len(data)):
+        print(f"data[{i}] contains {data[i].keys()}")
+        entry = prompt_template.format(
+            source_code_path=data[i]["source_code_path"],
+            line_number=data[i]["line_number"],
+            code=get_source_code(data[i]),
+            bug_report_text=data[i]["bug_report_text"])
+        dataset.append(entry)
 
-
-async def eval_pipeline(data, model_hash):
-    answer_ops = EvalPipeline(model_hash).call(get_data_async(data))
-
-    answers = []
-
-    pbar = tqdm(desc="Saving answers", unit=" answers", total=len(data))
-
-    async for answer_op in answer_ops:
-        answers.append(answer_op)
-        pbar.update(1)
-
-    return answers
-
-
-async def get_data_async(data):
-    for item in data:
-        yield PromptObject(prompt="", data=item)
-
-
-class EvalPipeline(GenerationPipeline):
-    def __init__(self, model_hash):
-        super().__init__()
-
-        self.answer_question = AnswerGenerator(model_hash)
-
-    def forward(self, x):
-        x = self.answer_question(x)
-        return x
-
-
-class AnswerGenerator(GenerationNode):
-    def __init__(self, model_hash):
-        super().__init__(model_name=model_hash, max_new_tokens=500)
-
-    def postprocess(self, obj: PromptObject):
-        logger.info(f"Generated answer for {obj}")
-        obj.data["generated_diff"] = obj.response["output"]
-        obj.data["given_prompt"] = obj.prompt
-
-    def preprocess(self, obj: PromptObject):
-        obj.prompt = self.make_prompt(obj)
-        # print(f"\n\n^^^^^^^^^^^^^^\n\n {obj.prompt}\n\n")
-
-    def make_prompt(self, obj: PromptObject):
-        prompt = "<|start_header_id|>user<|end_header_id|>"
-        # prompt = "<s>[INST]"
-        prompt += "Consider the following github diff format.\n"
-        prompt += "============ Diff format ============\n"
-        prompt += "```diff\n"
-        prompt += "diff --git a/file1 b/file2\n"
-        prompt += "index 1234567..89abcdef 100644\n"
-        prompt += "--- a/file1\n"
-        prompt += "+++ b/file2\n"
-        prompt += "@@ -1,3 +1,3 @@\n"
-        prompt += "-old line\n"
-        prompt += "+new line\n"
-        prompt += "```"
-        prompt += "====================================\n"
-        prompt += "Read through the following source code carefully.\n"
-        prompt += "============ Source Code ============\n"
-        prompt += "File: " + obj.data["source_code_path"] + "\n"
-        prompt += "Line: " + str(obj.data["line_number"]) + "\n"
-        prompt += get_source_code(obj.data)
-        prompt += "====================================\n"
-        prompt += "Read the following bug report.\n"
-        prompt += "============ Bug Report ============\n"
-        prompt += obj.data["bug_report_text"]
-        prompt += "====================================\n"
-        # prompt += "Here is the function signature.\n"
-        # prompt += obj.data["function_signature"]
-        # prompt += "Ensure the return types in fix are correct."
-        prompt += "Based on the source code and the bug report, write a diff that fixes the bug.\n"
-        prompt += "Use github diff format.\n"
-        prompt += "Don't explain your diff, answer directly with the diff.\n"
-        prompt += "<|eot_id|><|start_header_id|>assistant<|end_header_id|>"
-        # prompt += "[/INST]"
-
-        return prompt
-
+    logger.info(f"Generated {len(dataset)} prompts")
+    return dataset
 
 def get_source_code(data):
     # Before and after lines to show
@@ -143,16 +91,17 @@ def get_source_code(data):
 def save_results(results, results_path):
     jsonlines_path = results_path
 
+    logger.info(f"Writing to file {jsonlines_path}")
     with jsonlines.open(jsonlines_path, "w") as writer:
         for result in results:
-            writer.write(result.data)
+            writer.write(result)
 
     # Split the file path into directory, filename without extension, and current extension
     base = os.path.splitext(jsonlines_path)[0]
 
     # Add the new extension to the base filename
     # Also save the results as csv
-    csv_path = f"{base}" + ".csv"
+    '''csv_path = f"{base}" + ".csv"
 
     # Select the following column names to be saved in the CSV file
     columns = [
@@ -168,7 +117,7 @@ def save_results(results, results_path):
         writer.writeheader()
 
         for result in results:
-            writer.writerow({k: result.data[k] for k in columns})
+            writer.writerow({k: result[k] for k in columns})'''
 
 
 def main():
@@ -197,7 +146,7 @@ def main():
     parser.add_argument(
         "-m",
         "--model",
-        default="meta-llama/Meta-Llama-3.1-8B-Instruct",
+        default="",
         help="Model hash that eval should use",
     )
     args = parser.parse_args()
@@ -205,16 +154,43 @@ def main():
     # Set up logging based on verbose flag
     log_level = logging.DEBUG if args.verbose else logging.INFO
     logging.basicConfig(level=log_level, format="%(levelname)s: %(message)s")
-    logger.info(f"\nlamini api key {lamini.api_key}\n")
 
     logger.info(f"\nLoading data from {args.input}\n")
 
     logger.info(f"\nWriting eval results to {args.output}\n")
 
     data = load_data(eval_file_path=args.input)
+    dataset = get_dataset(data)
 
-    results = run_eval_pipeline(data, args.model)
+    llm = masint.SupermassiveIntelligence()
 
+    import time
+    # Capture start time
+    start_time = time.time()
+    results = []
+    i = 0
+    for entry in dataset:
+        iter_start_time = time.time()
+        generated_diff = llm.generate(prompts=[entry], max_tokens=3000, model_name=args.model)
+        iter_end_time = time.time()
+        
+        iteration_latency = iter_end_time - iter_start_time
+        print(f"Generated Result {i} - Iteration Time: {iteration_latency:.4f} seconds")
+
+        this_result = {}
+        this_result["bug_report_path"] = data[i]["source_code_path"]
+        this_result["bug_report_text"] = data[i]["bug_report_text"]
+        this_result["given_prompt"] = entry
+        this_result["diff_text"] = data[i]["diff_text"]
+        this_result["generated_diff"] = generated_diff[0] #format_diff(generated_diff[0])
+        results.append(this_result)
+
+        i += 1
+    end_time = time.time()
+    total_latency = end_time - start_time
+
+    print(f"Total loop execution time: {total_latency:.4f} seconds")
+    print(results)
     save_results(results, args.output)
 
 
