@@ -7,8 +7,8 @@ import os
 import logging
 from prompt import prompt_template
 
-#masint.api_url = "http://localhost:8000" 
-masint.api_url = "https://meta-llama--llama-3-2-3b-instruct.cray-lm.com"
+masint.api_url = "http://localhost:8000" 
+#masint.api_url = "https://meta-llama--llama-3-2-3b-instruct.cray-lm.com"
 
 logger = logging.getLogger(__name__)
 
@@ -146,7 +146,7 @@ def main():
     parser.add_argument(
         "-m",
         "--model",
-        default="",
+        default=None,
         help="Model hash that eval should use",
     )
     args = parser.parse_args()
@@ -169,7 +169,7 @@ def main():
     start_time = time.time()
     results = []
     i = 0
-    for entry in dataset:
+    '''for entry in dataset:
         iter_start_time = time.time()
         generated_diff = llm.generate(prompts=[entry], max_tokens=3000, model_name=args.model)
         iter_end_time = time.time()
@@ -185,7 +185,26 @@ def main():
         this_result["generated_diff"] = generated_diff[0] #format_diff(generated_diff[0])
         results.append(this_result)
 
+        i += 1'''
+
+    iter_start_time = time.time()
+    generated_diffs = llm.generate(prompts=dataset, max_tokens=256, model_name=args.model)
+    iter_end_time = time.time()
+    
+    iteration_latency = iter_end_time - iter_start_time
+    print(f"Generated Result {i} - Iteration Time: {iteration_latency:.4f} seconds")
+
+    for i in range(0,len(generated_diffs)):
+        this_result = {}
+        this_result["bug_report_path"] = data[i]["source_code_path"]
+        this_result["bug_report_text"] = data[i]["bug_report_text"]
+        this_result["given_prompt"] = dataset[i]
+        this_result["diff_text"] = data[i]["diff_text"]
+        this_result["generated_diff"] = generated_diffs[i] #format_diff(generated_diff[0])
+        results.append(this_result)
         i += 1
+        print(f"\n Prompt contains \n {this_result['given_prompt']}")
+
     end_time = time.time()
     total_latency = end_time - start_time
 
