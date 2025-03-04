@@ -6,8 +6,8 @@ import constants as constval
 
 import logging
 
-#masint.api_url = "http://localhost:8000" 
-masint.api_url = "https://meta-llama--llama-3-2-3b-instruct.cray-lm.com"
+masint.api_url = "http://localhost:8000" 
+#masint.api_url = "https://meta-llama--llama-3-2-3b-instruct.cray-lm.com"
 logger = logging.getLogger(__name__)
 
 
@@ -25,7 +25,7 @@ def get_data(training_data_file, dataset_size=1000):
     data = []
 
     for i in range(len(raw_data)):
-        print(f"{i} is {raw_data[i].keys()}")
+        #print(f"{i} is {raw_data[i].keys()}")
         entry = prompt_template.format(
             source_code_path=raw_data[i]["source_code_path"],
             line_number=raw_data[i]["line_number"],
@@ -35,10 +35,10 @@ def get_data(training_data_file, dataset_size=1000):
         data.append(
             {
                 "input": entry,
-                "output": raw_data[i]["diff_text"]
+                "output": raw_data[i]["diff_text"] + "<|eot_id|>"
             }
         )
-        break
+        print(f"\n Prompt contains \n {data[i]}")
     logger.info(f"Generated {len(data)} training samples")
     # random.seed(42)
     # random.shuffle(data)
@@ -101,7 +101,7 @@ def main():
     data = get_data(training_data_file=args.input)
 
     llm = masint.SupermassiveIntelligence()
-    train_response = llm.train(data, train_args={"max_steps": 400, "learning_rate": 3e-3})
+    train_response = llm.train(data, train_args={"max_steps": 200, "learning_rate": 3e-3})
 
     print(train_response)
 
