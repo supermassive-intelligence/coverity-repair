@@ -6,8 +6,8 @@ import constants as constval
 
 import logging
 
-#masint.api_url = "http://localhost:8000" 
-masint.api_url = "https://llama8btensorwave.cray-lm.com"
+masint.api_url = "http://localhost:8000" 
+#masint.api_url = "https://llama8btensorwave.cray-lm.com"
 logger = logging.getLogger(__name__)
 
 
