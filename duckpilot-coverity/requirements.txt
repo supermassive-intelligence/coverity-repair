@@ -1,3 +1,5 @@
+aiofiles
 black
-lamini
+jsonlines
 python-dotenv==1.0.1
+-e ./sdk
