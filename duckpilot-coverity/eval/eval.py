@@ -61,7 +61,7 @@ def get_dataset(data):
             bug_report_text=data[i]["bug_report_text"])
         dataset.append(entry)
 
-    logger.info(f"Generated {len(dataset)} prompts")
+    logger.info(f"\nGenerated {len(dataset)} prompts")
     return dataset
 
 def get_source_code(data):
@@ -169,23 +169,6 @@ def main():
     start_time = time.time()
     results = []
     i = 0
-    '''for entry in dataset:
-        iter_start_time = time.time()
-        generated_diff = llm.generate(prompts=[entry], max_tokens=3000, model_name=args.model)
-        iter_end_time = time.time()
-        
-        iteration_latency = iter_end_time - iter_start_time
-        print(f"Generated Result {i} - Iteration Time: {iteration_latency:.4f} seconds")
-
-        this_result = {}
-        this_result["bug_report_path"] = data[i]["source_code_path"]
-        this_result["bug_report_text"] = data[i]["bug_report_text"]
-        this_result["given_prompt"] = entry
-        this_result["diff_text"] = data[i]["diff_text"]
-        this_result["generated_diff"] = generated_diff[0] #format_diff(generated_diff[0])
-        results.append(this_result)
-
-        i += 1'''
 
     iter_start_time = time.time()
     generated_diffs = llm.generate(prompts=dataset, max_tokens=256, model_name=args.model)
@@ -200,8 +183,10 @@ def main():
         this_result["bug_report_text"] = data[i]["bug_report_text"]
         this_result["given_prompt"] = dataset[i]
         this_result["diff_text"] = data[i]["diff_text"]
-        this_result["generated_diff"] = generated_diffs[i] #format_diff(generated_diff[0])
+        this_result["generated_diff"] = format_diff(generated_diffs[i]) #format_diff(generated_diff[0])
         results.append(this_result)
+        #print(f"generated diff \n{generated_diffs[i]}\n")
+        #print(f"formatted diff\n\n{format_diff(generated_diffs[i])}\n")
         i += 1
         print(f"\n Prompt contains \n {this_result['given_prompt']}")
 
