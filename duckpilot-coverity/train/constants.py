@@ -1,1 +1,2 @@
-BASE_MODEL_NAME = "meta-llama/Meta-Llama-3.1-8B-Instruct"
+LINES_BEFORE = 7
+LINES_AFTER = 7

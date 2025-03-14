@@ -7,8 +7,8 @@ import os
 import logging
 from prompt import prompt_template
 
-masint.api_url = "http://localhost:8000" 
-#masint.api_url = "https://meta-llama--llama-3-2-3b-instruct.cray-lm.com"
+#masint.api_url = "http://localhost:8000" 
+masint.api_url = "https://llama8btensorwave.cray-lm.com"
 
 logger = logging.getLogger(__name__)
 
@@ -66,8 +66,8 @@ def get_dataset(data):
 
 def get_source_code(data):
     # Before and after lines to show
-    before_lines = constval.LINES_BEFORE  # 5
-    after_lines = constval.LINES_AFTER  # 5
+    before_lines = constval.LINES_BEFORE
+    after_lines = constval.LINES_AFTER
 
     source_code = data["code"]
 
