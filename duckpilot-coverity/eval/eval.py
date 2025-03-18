@@ -7,7 +7,8 @@ import os
 import logging
 from prompt import prompt_template
 
-masint.api_url = "http://localhost:8000" 
+masint.api_url = "http://10.1.81.248:8000"
+#masint.api_url = "http://localhost:8000" 
 #masint.api_url = "https://llama8btensorwave.cray-lm.com"
 
 logger = logging.getLogger(__name__)
@@ -183,7 +184,7 @@ def main():
         this_result["bug_report_text"] = data[i]["bug_report_text"]
         this_result["given_prompt"] = dataset[i]
         this_result["diff_text"] = data[i]["diff_text"]
-        this_result["generated_diff"] = format_diff(generated_diffs[i]) #format_diff(generated_diff[0])
+        this_result["generated_diff"] = generated_diffs[i] #format_diff(generated_diff[0])
         results.append(this_result)
         #print(f"generated diff \n{generated_diffs[i]}\n")
         #print(f"formatted diff\n\n{format_diff(generated_diffs[i])}\n")
