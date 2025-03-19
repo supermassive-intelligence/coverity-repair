@@ -1,4 +1,4 @@
-File:       drivers/gpu/drm/amd/amdgpu/amdgpu_cs.c
+File:       drivers/gpu/drm/amd/amdgpu/amdgpu_gem.c
 Function:   amdgpu_gem_object_create
 Line: 116
 Type:       Null Pointer Dereference
