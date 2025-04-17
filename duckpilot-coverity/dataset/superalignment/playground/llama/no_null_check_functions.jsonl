@@ -1,0 +1,22 @@
+[
+  {
+    "filename": "aldebaran_reset.c",
+    "functionname": "aldebaran_is_mode2_default",
+    "code": "static bool aldebaran_is_mode2_default(struct amdgpu_reset_control *reset_ctl)\n{\n\tstruct amdgpu_device *adev = (struct amdgpu_device *)reset_ctl->handle;\n\n\treturn (amdgpu_ip_version(adev, MP1_HWIP, 0) == IP_VERSION(13, 0, 2) &&\n\t     adev->gmc.xgmi.connected_to_cpu);\n}"
+  },
+  {
+    "filename": "aldebaran_reset.c",
+    "functionname": "aldebaran_get_reset_handler",
+    "code": "static struct amdgpu_reset_handler *\naldebaran_get_reset_handler(struct amdgpu_reset_control *reset_ctl,\n\t\t\t    struct amdgpu_reset_context *reset_context)\n{\n\tstruct amdgpu_reset_handler *handler;\n\tstruct amdgpu_device *adev = (struct amdgpu_device *)reset_ctl->handle;\n\tint i;\n\n\tif (reset_context->method == AMD_RESET_METHOD_NONE) {\n\t\tif (aldebaran_is_mode2_default(reset_ctl))\n\t\t\treset_context->method = AMD_RESET_METHOD_MODE2;\n\t\telse\n\t\t\treset_context->method = amdgpu_asic_reset_method(adev);\n\t}\n\n\tdev_dbg(adev->dev, \"Getting reset handler for method %d\\n\",\n\t\treset_context->method);\n\tfor_each_handler(i, handler, reset_ctl) {\n\t\tif (handler->reset_method == reset_context->method)\n\t\t\treturn handler;\n\t}\n\n\tdev_dbg(adev->dev, \"Reset handler not found!\\n\");\n\n\treturn NULL;\n}"
+  },
+  {
+    "filename": "aldebaran_reset.c",
+    "functionname": "aldebaran_mode2_suspend_ip",
+    "code": "static int aldebaran_mode2_suspend_ip(struct amdgpu_device *adev)\n{\n\tint r, i;\n\n\tamdgpu_device_set_pg_state(adev, AMD_PG_STATE_UNGATE);\n\tamdgpu_device_set_cg_state(adev, AMD_CG_STATE_UNGATE);\n\n\tfor (i = adev->num_ip_blocks - 1; i >= 0; i--) {\n\t\tr = adev->ip_blocks[i].version->funcs->suspend(adev);\n\n\t\tdev_err(adev->dev,\n\t\t\t\"suspend of IP block <%s> failed %d\\n\",\n\t\t\tadev->ip_blocks[i].version->funcs->name, r);\n\n\t\tadev->ip_blocks[i].status.hw = false;\n\t}\n\n\treturn 0;\n}"
+  },
+  {
+    "filename": "aldebaran_reset.c",
+    "functionname": "aldebaran_mode2_prepare_hwcontext",
+    "code": "static int\naldebaran_mode2_prepare_hwcontext(struct amdgpu_reset_control *reset_ctl,\n\t\t\t\t  struct amdgpu_reset_context *reset_context)\n{\n\tint r = 0;\n\tstruct amdgpu_device *adev = (struct amdgpu_device *)reset_ctl->handle;\n\n\tdev_dbg(adev->dev, \"Aldebaran prepare hw context\\n\");\n\tr = aldebaran_mode2_suspend_ip(adev);\n\n\treturn r;\n}"
+  }
+]

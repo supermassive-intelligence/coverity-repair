@@ -7,9 +7,8 @@ import os
 import logging
 from prompt import prompt_template
 
-masint.api_url = "http://10.1.81.248:8000"
+masint.api_url = "https://llama8btensorwave.cray-lm.com/"
 #masint.api_url = "http://localhost:8000" 
-#masint.api_url = "https://llama8btensorwave.cray-lm.com"
 
 logger = logging.getLogger(__name__)
 
@@ -162,7 +161,7 @@ def main():
 
     data = load_data(eval_file_path=args.input)
     dataset = get_dataset(data)
-
+    
     llm = masint.SupermassiveIntelligence()
 
     import time
@@ -172,6 +171,7 @@ def main():
     i = 0
 
     iter_start_time = time.time()
+    print(f"\n\n{dataset[0]}\n\n")
     generated_diffs = llm.generate(prompts=dataset, max_tokens=256, model_name=args.model)
     iter_end_time = time.time()
     
