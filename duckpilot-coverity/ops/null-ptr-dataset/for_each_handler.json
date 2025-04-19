@@ -1,0 +1,5 @@
+{
+    "function_name": "for_each_handler",
+    "original_function": "\n\n\tfor_each_handler(i, handler, reset_ctl)\t{\n\t\tif (handler->reset_method == reset_ctl->active_reset) {\n\t\t\tdev_dbg(adev->dev, \"Resetting device\\n\");\n\t\t\thandler->do_reset(adev);\n\t\t\tbreak;\n\t\t}\n\t}",
+    "fixed_function": "for_each_handler(i, handler, reset_ctl) {\n\tif (handler && handler->reset_method == reset_ctl->active_reset) {\n\t\tdev_dbg(adev->dev, \"Resetting device\\n\");\n\t\tif (handler->do_reset) {\n\t\t\thandler->do_reset(adev);\n\t\t}\n\t\tbreak;\n\t}\n}"
+}

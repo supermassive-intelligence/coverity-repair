@@ -1,0 +1,5 @@
+{
+    "function_name": "if",
+    "original_function": "\n\t\t\tif (r) {\n\t\t\t\tdev_err(tmp_adev->dev,\n\t\t\t\t\t\"ib ring test failed (%d).\\n\", r);\n\t\t\t\tr = -EAGAIN;\n\t\t\t\ttmp_adev->asic_reset_res = r;\n\t\t\t\tgoto end;\n\t\t\t}",
+    "fixed_function": "if (tmp_adev && tmp_adev->dev && r) {\n    dev_err(tmp_adev->dev,\n            \"ib ring test failed (%d).\\n\", r);\n    r = -EAGAIN;\n    tmp_adev->asic_reset_res = r;\n    goto end;\n}"
+}

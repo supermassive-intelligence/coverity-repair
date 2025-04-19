@@ -27,7 +27,9 @@ prompt_template += "Read the following bug report.\n"
 prompt_template += "============ Bug Report ============\n"
 prompt_template += "{bug_report_text}"
 prompt_template += "====================================\n"
-prompt_template += "Based on the source code and the bug report, write a diff that fixes the bug.\n"
+prompt_template += (
+    "Based on the source code and the bug report, write a diff that fixes the bug.\n"
+)
 prompt_template += "Use github diff format.\n"
 prompt_template += "Don't explain your diff, answer directly with the diff.\n"
 prompt_template += "<|eot_id|><|start_header_id|>assistant<|end_header_id|>"

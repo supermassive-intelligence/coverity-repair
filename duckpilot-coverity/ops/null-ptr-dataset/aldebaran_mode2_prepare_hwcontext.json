@@ -1,0 +1,5 @@
+{
+    "function_name": "aldebaran_mode2_prepare_hwcontext",
+    "original_function": "\n\nstatic int\naldebaran_mode2_prepare_hwcontext(struct amdgpu_reset_control *reset_ctl,\n\t\t\t\t  struct amdgpu_reset_context *reset_context)\n{\n\tint r = 0;\n\tstruct amdgpu_device *adev = (struct amdgpu_device *)reset_ctl->handle;\n\n\tdev_dbg(adev->dev, \"Aldebaran prepare hw context\\n\");\n\t/* Don't suspend on bare metal if we are not going to HW reset the ASIC */\n\tif (!amdgpu_sriov_vf(adev))\n\t\tr = aldebaran_mode2_suspend_ip(adev);\n\n\treturn r;\n}",
+    "fixed_function": "static int\naldebaran_mode2_prepare_hwcontext(struct amdgpu_reset_control *reset_ctl,\n\t\t\t\t  struct amdgpu_reset_context *reset_context)\n{\n\tint r = 0;\n\tstruct amdgpu_device *adev = (struct amdgpu_device *)reset_ctl->handle;\n\n\tif (adev == NULL) {\n\t\tdev_err(adev->dev, \"Invalid handle in reset control\\n\");\n\t\treturn -EINVAL;\n\t}\n\n\tdev_dbg(adev->dev, \"Aldebaran prepare hw context\\n\");\n\t/* Don't suspend on bare metal if we are not going to HW reset the ASIC */\n\tif (!amdgpu_sriov_vf(adev))\n\t\tr = aldebaran_mode2_suspend_ip(adev);\n\n\treturn r;\n}"
+}

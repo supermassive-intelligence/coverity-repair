@@ -1,6 +1,7 @@
 import re
 import argparse
 import logging
+
 logger = logging.getLogger(__name__)
 
 import re
@@ -8,8 +9,9 @@ import re
 
 import re
 
+
 def extract_c_functions_from_file(file_path):
-    with open(file_path, 'r') as file:
+    with open(file_path, "r") as file:
         source_code = file.read()
 
     # Match function signature + body
@@ -28,11 +30,10 @@ def extract_c_functions_from_file(file_path):
     functions = {}
     for match in pattern.finditer(source_code):
         func_name = match.group(2)
-        full_func = source_code[match.start():match.end()]  # exact source slice
+        full_func = source_code[match.start() : match.end()]  # exact source slice
         functions[func_name] = full_func
 
     return functions
-
 
 
 def main():
@@ -74,6 +75,7 @@ def main():
         print(f"{name}\n{'-'*40}")
         print(code)
         print()
+
 
 if __name__ == "__main__":
     main()

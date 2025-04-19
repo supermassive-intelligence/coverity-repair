@@ -8,28 +8,29 @@ import logging
 from prompt import prompt_template
 
 masint.api_url = "https://llama8btensorwave.cray-lm.com/"
-#masint.api_url = "http://localhost:8000" 
+# masint.api_url = "http://localhost:8000"
 
 logger = logging.getLogger(__name__)
 
 import re
 
+
 def format_diff(raw_diff):
     # Extract the diff content
-    diff_match = re.search(r'```diff\n(.*?)\n```', raw_diff, re.DOTALL)
+    diff_match = re.search(r"```diff\n(.*?)\n```", raw_diff, re.DOTALL)
     if not diff_match:
         return "Invalid diff format"
-    
+
     diff_content = diff_match.group(1)
-    
+
     # Extract file name
-    file_match = re.search(r'diff --git a/(.*?) b/.*', diff_content)
+    file_match = re.search(r"diff --git a/(.*?) b/.*", diff_content)
     file_name = file_match.group(1) if file_match else "Unknown file"
-    
+
     # Extract note
-    note_match = re.search(r'```={36}\n(.*)', raw_diff, re.DOTALL)
+    note_match = re.search(r"```={36}\n(.*)", raw_diff, re.DOTALL)
     note = note_match.group(1).strip() if note_match else ""
-    
+
     # Format the readable output
     formatted_output = f"""
         File: {file_name}
@@ -40,8 +41,9 @@ def format_diff(raw_diff):
         Note:
         {note if note else 'No additional notes.'}
         """.strip()
-    
+
     return formatted_output
+
 
 def load_data(eval_file_path):
     with jsonlines.open(eval_file_path) as reader:
@@ -58,11 +60,13 @@ def get_dataset(data):
             source_code_path=data[i]["source_code_path"],
             line_number=data[i]["line_number"],
             code=get_source_code(data[i]),
-            bug_report_text=data[i]["bug_report_text"])
+            bug_report_text=data[i]["bug_report_text"],
+        )
         dataset.append(entry)
 
     logger.info(f"\nGenerated {len(dataset)} prompts")
     return dataset
+
 
 def get_source_code(data):
     # Before and after lines to show
@@ -101,7 +105,7 @@ def save_results(results, results_path):
 
     # Add the new extension to the base filename
     # Also save the results as csv
-    '''csv_path = f"{base}" + ".csv"
+    """csv_path = f"{base}" + ".csv"
 
     # Select the following column names to be saved in the CSV file
     columns = [
@@ -117,7 +121,7 @@ def save_results(results, results_path):
         writer.writeheader()
 
         for result in results:
-            writer.writerow({k: result[k] for k in columns})'''
+            writer.writerow({k: result[k] for k in columns})"""
 
 
 def main():
@@ -161,10 +165,11 @@ def main():
 
     data = load_data(eval_file_path=args.input)
     dataset = get_dataset(data)
-    
+
     llm = masint.SupermassiveIntelligence()
 
     import time
+
     # Capture start time
     start_time = time.time()
     results = []
@@ -172,22 +177,26 @@ def main():
 
     iter_start_time = time.time()
     print(f"\n\n{dataset[0]}\n\n")
-    generated_diffs = llm.generate(prompts=dataset, max_tokens=256, model_name=args.model)
+    generated_diffs = llm.generate(
+        prompts=dataset, max_tokens=256, model_name=args.model
+    )
     iter_end_time = time.time()
-    
+
     iteration_latency = iter_end_time - iter_start_time
     print(f"Generated Result {i} - Iteration Time: {iteration_latency:.4f} seconds")
 
-    for i in range(0,len(generated_diffs)):
+    for i in range(0, len(generated_diffs)):
         this_result = {}
         this_result["bug_report_path"] = data[i]["source_code_path"]
         this_result["bug_report_text"] = data[i]["bug_report_text"]
         this_result["given_prompt"] = dataset[i]
         this_result["diff_text"] = data[i]["diff_text"]
-        this_result["generated_diff"] = generated_diffs[i] #format_diff(generated_diff[0])
+        this_result["generated_diff"] = generated_diffs[
+            i
+        ]  # format_diff(generated_diff[0])
         results.append(this_result)
-        #print(f"generated diff \n{generated_diffs[i]}\n")
-        #print(f"formatted diff\n\n{format_diff(generated_diffs[i])}\n")
+        # print(f"generated diff \n{generated_diffs[i]}\n")
+        # print(f"formatted diff\n\n{format_diff(generated_diffs[i])}\n")
         i += 1
         print(f"\n Prompt contains \n {this_result['given_prompt']}")
 

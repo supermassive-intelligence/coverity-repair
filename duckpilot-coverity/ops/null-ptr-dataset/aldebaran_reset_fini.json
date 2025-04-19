@@ -1,0 +1,5 @@
+{
+    "function_name": "aldebaran_reset_fini",
+    "original_function": "\n\nint aldebaran_reset_fini(struct amdgpu_device *adev)\n{\n\tkfree(adev->reset_cntl);\n\tadev->reset_cntl = NULL;\n\treturn 0;\n}",
+    "fixed_function": "int aldebaran_reset_fini(struct amdgpu_device *adev)\n{\n\tif (adev == NULL) {\n\t\treturn -EINVAL;\n\t}\n\tif (adev->reset_cntl != NULL) {\n\t\tkfree(adev->reset_cntl);\n\t}\n\tadev->reset_cntl = NULL;\n\treturn 0;\n}"
+}

@@ -1,0 +1,5 @@
+{
+    "function_name": "aldebaran_is_mode2_default",
+    "original_function": "\n\nstatic bool aldebaran_is_mode2_default(struct amdgpu_reset_control *reset_ctl)\n{\n\tstruct amdgpu_device *adev = (struct amdgpu_device *)reset_ctl->handle;\n\n\tif ((amdgpu_ip_version(adev, MP1_HWIP, 0) == IP_VERSION(13, 0, 2) &&\n\t     adev->gmc.xgmi.connected_to_cpu))\n\t\treturn true;\n\n\treturn false;\n}",
+    "fixed_function": "static bool aldebaran_is_mode2_default(struct amdgpu_reset_control *reset_ctl)\n{\n\tstruct amdgpu_device *adev = (struct amdgpu_device *)reset_ctl->handle;\n\n\tif (adev != NULL && reset_ctl != NULL) {\n\t\tif ((amdgpu_ip_version(adev, MP1_HWIP, 0) == IP_VERSION(13, 0, 2) &&\n\t\t     adev->gmc.xgmi.connected_to_cpu))\n\t\t\treturn true;\n\t}\n\n\treturn false;\n}"
+}

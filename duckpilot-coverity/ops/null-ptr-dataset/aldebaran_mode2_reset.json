@@ -1,0 +1,5 @@
+{
+    "function_name": "aldebaran_mode2_reset",
+    "original_function": "\n\nstatic int aldebaran_mode2_reset(struct amdgpu_device *adev)\n{\n\t/* disable BM */\n\tpci_clear_master(adev->pdev);\n\tadev->asic_reset_res = amdgpu_dpm_mode2_reset(adev);\n\treturn adev->asic_reset_res;\n}",
+    "fixed_function": "static int aldebaran_mode2_reset(struct amdgpu_device *adev)\n{\n\tif (adev == NULL) {\n\t\treturn -EINVAL;\n\t}\n\n\tif (adev->pdev == NULL) {\n\t\treturn -EINVAL;\n\t}\n\n\tpci_clear_master(adev->pdev);\n\tadev->asic_reset_res = amdgpu_dpm_mode2_reset(adev);\n\treturn adev->asic_reset_res;\n}"
+}
