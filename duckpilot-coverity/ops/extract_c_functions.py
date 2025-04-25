@@ -4,11 +4,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-import re
-import re
-
-import re
-
 
 def extract_c_functions_from_file(file_path):
     with open(file_path, "r") as file:

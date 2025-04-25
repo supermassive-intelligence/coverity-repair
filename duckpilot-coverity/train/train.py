@@ -7,10 +7,9 @@ import constants as constval
 import logging
 
 masint.api_url = "http://10.1.81.248:8000"
-#masint.api_url = "http://localhost:8000" 
-#masint.api_url = "https://llama8btensorwave.cray-lm.com"
+# masint.api_url = "http://localhost:8000"
+# masint.api_url = "https://llama8btensorwave.cray-lm.com"
 logger = logging.getLogger(__name__)
-
 
 
 def print_data(data):
@@ -26,25 +25,20 @@ def get_data(training_data_file, dataset_size=1000):
     data = []
 
     for i in range(len(raw_data)):
-        #print(f"{i} is {raw_data[i].keys()}")
+        # print(f"{i} is {raw_data[i].keys()}")
         entry = prompt_template.format(
             source_code_path=raw_data[i]["source_code_path"],
             line_number=raw_data[i]["line_number"],
             code=get_source_code(raw_data[i]),
-            bug_report_text=raw_data[i]["bug_report_text"])
-        
-        data.append(
-            {
-                "input": entry,
-                "output": raw_data[i]["diff_text"] + "<|eot_id|>"
-            }
+            bug_report_text=raw_data[i]["bug_report_text"],
         )
+
+        data.append({"input": entry, "output": raw_data[i]["diff_text"] + "<|eot_id|>"})
         print(f"\n Prompt contains \n {data[i]}")
     logger.info(f"Generated {len(data)} training samples")
     # random.seed(42)
     # random.shuffle(data)
     return data
-
 
 
 def get_raw_data(training_data_file):
@@ -56,8 +50,8 @@ def get_raw_data(training_data_file):
 
 def get_source_code(data):
     # Before and after lines to show
-    before_lines = constval.LINES_BEFORE 
-    after_lines = constval.LINES_AFTER 
+    before_lines = constval.LINES_BEFORE
+    after_lines = constval.LINES_AFTER
 
     source_code = data["code"]
 
@@ -102,10 +96,11 @@ def main():
     data = get_data(training_data_file=args.input)
 
     llm = masint.SupermassiveIntelligence()
-    train_response = llm.train(data, train_args={"max_steps": 200, "learning_rate": 3e-3})
+    train_response = llm.train(
+        data, train_args={"max_steps": 200, "learning_rate": 3e-3}
+    )
 
     print(train_response)
-
 
 
 # Entry point of the script
